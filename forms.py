@@ -11,8 +11,8 @@ from wtforms.validators import DataRequired, AnyOf, URL
 
 
 class ShowForm(Form):
-    artist_id = StringField("artist_id")
-    venue_id = StringField("venue_id")
+    artist_id = StringField("artist_id", validators=[DataRequired()])
+    venue_id = StringField("venue_id", validators=[DataRequired()])
     start_time = DateTimeField(
         "start_time", validators=[DataRequired()], default=datetime.today()
     )
@@ -79,8 +79,8 @@ class VenueForm(Form):
         ],
     )
     address = StringField("address", validators=[DataRequired()])
-    phone = StringField("phone")
-    image_link = StringField("image_link")
+    phone = StringField("phone", validators=[DataRequired()])
+    image_link = StringField("image_link", validators=[DataRequired()])
     genres = SelectMultipleField(
         # TODO implement enum restriction [Done]
         "genres",
@@ -108,7 +108,7 @@ class VenueForm(Form):
         ],
     )
     facebook_link = StringField("facebook_link", validators=[URL()])
-    seeking_talent = BooleanField("seeking_talent", default=False)
+    seeking_talent = BooleanField("seeking_talent")
     seeking_description = StringField("seeking_description")
 
 
@@ -173,8 +173,7 @@ class ArtistForm(Form):
         ],
     )
     phone = StringField(
-        # TODO implement validation logic for state
-        "phone"
+        "phone", validators=[DataRequired()]
     )
     image_link = StringField("image_link")
     genres = SelectMultipleField(
@@ -203,4 +202,7 @@ class ArtistForm(Form):
             ("Other", "Other"),
         ],
     )
+    website = StringField("website", validators=[URL()])
     facebook_link = StringField("facebook_link", validators=[URL()])
+    seeking_venue = BooleanField("seeking_venue")
+

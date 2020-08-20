@@ -49,12 +49,12 @@ class Show(db.Model):
     artist_id = db.Column(
         db.Integer, db.ForeignKey("artist.id"), primary_key=True
     )
-    show_time = db.Column(db.Integer, nullable=False)
+    start_time = db.Column(db.DateTime(), nullable=False)
     artist = db.relationship("Artist", back_populates="parents")
     venue = db.relationship("Venue", back_populates="children")
 
     def __repr__(self):
-        return f"<venue {self.venue_id} {self.artist_id} {self.show_time}>"
+        return f"<venue {self.venue_id} {self.artist_id} {self.start_time}>"
 
 
 class Venue(db.Model):
@@ -89,6 +89,7 @@ class Artist(db.Model):
     phone = db.Column(db.String(120), nullable=False)
     genres = db.Column(db.String(120), nullable=False)
     image_link = db.Column(db.String(500), nullable=False)
+    website = db.Column(db.String(120), nullable=False)
     facebook_link = db.Column(db.String(120), nullable=False)
     seeking_venue = db.Column(db.Boolean(), default=False, nullable=False)
     parents = db.relationship("Show", back_populates="artist")
@@ -298,7 +299,6 @@ def create_venue_submission():
     error = False
     venue_info = request.form
     venue_info.to_dict(flat=False)
-    print(venue_info)
     try:
         venue = Venue(
             name=venue_info["name"],
@@ -309,9 +309,7 @@ def create_venue_submission():
             phone=venue_info["phone"],
             genres=venue_info["genres"],
             facebook_link=venue_info["facebook_link"],
-            seeking_talent=True
-            if venue_info["seeking_talent"] == "y"
-            else False,
+            seeking_talent=True if "seeking_talent" in venue_info else False,
             seeking_description=venue_info["seeking_description"],
         )
         db.session.add(venue)
@@ -535,11 +533,39 @@ def create_artist_form():
 @app.route("/artists/create", methods=["POST"])
 def create_artist_submission():
     # called upon submitting the new artist listing form
-    # TODO: insert form data as a new Venue record in the db, instead
+    # TODO: insert form data as a new Artist record in the db, instead [Done]
     # TODO: modify data to be the data object returned from db insertion
-
-    # on successful db insert, flash success
-    flash("Artist " + request.form["name"] + " was successfully listed!")
+    error = False
+    artist_info = request.form
+    artist_info.to_dict(flat=False)
+    print(artist_info)
+    try:
+        artist = Artist(
+            name=artist_info["name"],
+            image_link=artist_info["image_link"],
+            city=artist_info["city"],
+            state=artist_info["state"],
+            website=artist_info["website"],
+            phone=artist_info["phone"],
+            genres=artist_info["genres"],
+            facebook_link=artist_info["facebook_link"],
+            seeking_venue=True if "seeking_venue" in artist_info else False,
+        )
+        db.session.add(artist)
+        db.session.commit()
+        # on successful db insert, flash success
+        flash("Artist " + artist_info["name"] + " was successfully listed!")
+    except:
+        error = True
+        db.session.rollback()
+        print(sys.exc_info())
+        flash(
+            "An error occurred. Artist "
+            + artist_info["name"]
+            + " could not be listed."
+        )
+    finally:
+        db.session.close()
     # TODO: on unsuccessful db insert, flash an error instead.
     # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
     return render_template("pages/home.html")
@@ -609,10 +635,28 @@ def create_shows():
 @app.route("/shows/create", methods=["POST"])
 def create_show_submission():
     # called to create new shows in the db, upon submitting new show listing form
-    # TODO: insert form data as a new Show record in the db, instead
-
+    # TODO: insert form data as a new Show record in the db, instead [Done]
+    error = False
+    show_info = request.form
+    show_info.to_dict(flat=False)
+    print(show_info)
+    try:
+        venue = Venue.query.get(show_info["venue_id"])
+        artist = Artist.query.get(show_info["artist_id"])
+        show = Show(start_time=show_info["start_time"])
+        show.artist = artist
+        show.venue = venue
+        db.session.commit()
+        # on successful db insert, flash success
+        flash("Show was successfully listed!")
+    except:
+        error = True
+        db.session.rollback()
+        print(sys.exc_info())
+        flash("An error occurred. Show could not be listed.")
+    finally:
+        db.session.close()
     # on successful db insert, flash success
-    flash("Show was successfully listed!")
     # TODO: on unsuccessful db insert, flash an error instead.
     # e.g., flash('An error occurred. Show could not be listed.')
     # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
