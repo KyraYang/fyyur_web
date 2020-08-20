@@ -28,7 +28,7 @@ def _deactivate(args):
 _deactivate(["nondestructive"])
 aliases["deactivate"] = _deactivate
 
-$VIRTUAL_ENV = r"/Users/kyrayang/Repo/Udacity_FullStack/fyyur_web/starter_code/env"
+$VIRTUAL_ENV = r"/Users/kyrayang/Repo/Udacity_FullStack/fyyur_web/env"
 
 $_OLD_VIRTUAL_PATH = $PATH
 $PATH = $PATH[:]

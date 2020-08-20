@@ -1,3 +1,4 @@
+#!/usr/bin/env python\r\n
 # ----------------------------------------------------------------------------#
 # Imports
 # ----------------------------------------------------------------------------#
@@ -21,6 +22,7 @@ from logging import Formatter, FileHandler
 from flask_wtf import Form
 from flask_migrate import Migrate
 from forms import *
+import sys
 
 # ----------------------------------------------------------------------------#
 # App Config.
@@ -50,7 +52,7 @@ class Show(db.Model):
     show_time = db.Column(db.Integer, nullable=False)
     artist = db.relationship("Artist", back_populates="parents")
     venue = db.relationship("Venue", back_populates="children")
-    
+
     def __repr__(self):
         return f"<venue {self.venue_id} {self.artist_id} {self.show_time}>"
 
@@ -66,6 +68,9 @@ class Venue(db.Model):
     phone = db.Column(db.String(120), nullable=False)
     image_link = db.Column(db.String(500), nullable=False)
     facebook_link = db.Column(db.String(120), nullable=False)
+    genres = db.Column(db.String(120), nullable=False)
+    seeking_talent = db.Column(db.Boolean(), default=False, nullable=False)
+    seeking_description = db.Column(db.String(500), nullable=False)
     children = db.relationship("Show", back_populates="venue")
 
     def __repr__(self):
@@ -85,6 +90,7 @@ class Artist(db.Model):
     genres = db.Column(db.String(120), nullable=False)
     image_link = db.Column(db.String(500), nullable=False)
     facebook_link = db.Column(db.String(120), nullable=False)
+    seeking_venue = db.Column(db.Boolean(), default=False, nullable=False)
     parents = db.relationship("Show", back_populates="artist")
 
     def __repr__(self):
@@ -289,9 +295,41 @@ def create_venue_form():
 def create_venue_submission():
     # TODO: insert form data as a new Venue record in the db, instead
     # TODO: modify data to be the data object returned from db insertion
+    error = False
+    venue_info = request.form
+    venue_info.to_dict(flat=False)
+    print(venue_info)
+    try:
+        venue = Venue(
+            name=venue_info["name"],
+            image_link=venue_info["image_link"],
+            city=venue_info["city"],
+            state=venue_info["state"],
+            address=venue_info["address"],
+            phone=venue_info["phone"],
+            genres=venue_info["genres"],
+            facebook_link=venue_info["facebook_link"],
+            seeking_talent=True
+            if venue_info["seeking_talent"] == "y"
+            else False,
+            seeking_description=venue_info["seeking_description"],
+        )
+        db.session.add(venue)
+        db.session.commit()
+        # on successful db insert, flash success
+        flash("Venue " + venue_info["name"] + " was successfully listed!")
+    except:
+        error = True
+        db.session.rollback()
+        print(sys.exc_info())
+        flash(
+            "An error occurred. Venue "
+            + venue_info["name"]
+            + " could not be listed."
+        )
+    finally:
+        db.session.close()
 
-    # on successful db insert, flash success
-    flash("Venue " + request.form["name"] + " was successfully listed!")
     # TODO: on unsuccessful db insert, flash an error instead.
     # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
     # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/

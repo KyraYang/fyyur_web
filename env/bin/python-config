@@ -1,4 +1,4 @@
-#!/Users/kyrayang/Repo/Udacity_FullStack/fyyur_web/starter_code/env/bin/python
+#!/Users/kyrayang/Repo/Udacity_FullStack/fyyur_web/env/bin/python
 
 import sys
 import getopt
