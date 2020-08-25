@@ -1,7 +1,24 @@
 {% extends 'layouts/main.html' %}
 {% block title %}Fyyur | Artists{% endblock %}
 {% block content %}
-<ul class="items">
+<h4> Search by Area </h4>
+<div class="form-wrapper">
+    <form class="form" method="post" action="/artists/search">
+        <div class="form-group" style="">
+            <label>City & State</label>
+            <div class="form-inline">
+                <div class="form-group">
+                    {{ form.city(class_ = 'form-control', placeholder='City', autofocus = true) }}
+                </div>
+                <div class="form-group">
+                    {{ form.state(class_ = 'form-control', placeholder='State', autofocus = true) }}
+                </div>
+            </div>
+        </div>
+        <input type="submit" value="Search Artists" class="btn btn-primary" id="sumbit-form">
+    </form>
+</div>
+<ul class="items" style="margin-top: 30px">
 	{% for artist in artists %}
 	<li>
 		<a href="/artists/{{ artist.id }}">
